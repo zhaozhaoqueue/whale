@@ -6,6 +6,7 @@ import skimage.io
 import skimage.transform
 import imaug              # For creating distorted images
 from keras.utils import np_utils
+from sklearn.model_selection import train_test_split
 
 
 def one_hot():
@@ -180,11 +181,12 @@ def train(imgs, labels):
         for batch in batches:
             mini_X, mini_y = batch
             mini_loss = vgg.train(mini_X, mini_y)
+            train_loss += mini_loss
         print(i, "train loss", train_loss)
 
     vgg.save()
 
-# Assume input is a list of image names, e.g. f2rsf.jpg
+# Assume input is list of image name
 def predict(images, dir="./train"):
     vgg = Vgg16(vgg16_npy_path="vgg16.npy", restore_from="myVariables")
     _, org_labels = one_hot()
@@ -197,5 +199,18 @@ def predict(images, dir="./train"):
         preds.append(org_labels[pred_ind])
     return preds
 
+# # How to construct validation since unbalance
+# def split_train_val():
+#     imgs, labels = load_train_data()
+#     train_imgs, val_imgs, train_lab, val_lab = train_test_split(imgs, labels, test_size=0.2, random_state=2)
+#     return train_imgs, val_imgs, train_lab, val_lab
+
 # Write later
 # def to_submit(dir)
+
+
+if __name__ == "__main__":
+    # train_imgs, val_imgs, train_lab, val_lab = split_train_val()
+    # train(train_imgs, train_lab)
+    imgs, labels = load_train_data()
+    train(imgs, labels)
