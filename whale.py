@@ -26,7 +26,7 @@ def load_img(path):
     # crop_img = img[yy: yy + short_edge, xx: xx + short_edge]
     # resize to 224, 224
     # resized_img = skimage.transform.resize(img, (224, 224))[None, :, :, :]   # shape [1, 224, 224, 3]
-    resized_img = skimage.transform.resize(img, (224, 224))   # shape [224, 224, 3]
+    resized_img = skimage.transform.resize(img, (224, 224, 3))   # shape [224, 224, 3]
     return resized_img
 
 def load_train_data():
