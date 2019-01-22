@@ -4,7 +4,7 @@ import os
 import tensorflow as tf
 import skimage.io
 import skimage.transform
-import imaug              # For creating distorted images
+import imgaug              # For creating distorted images
 from keras.utils import np_utils
 from sklearn.model_selection import train_test_split
 
@@ -25,7 +25,8 @@ def load_img(path):
     # xx = int((img.shape[1] - short_edge) / 2)
     # crop_img = img[yy: yy + short_edge, xx: xx + short_edge]
     # resize to 224, 224
-    resized_img = skimage.transform.resize(img, (224, 224))[None, :, :, :]   # shape [1, 224, 224, 3]
+    # resized_img = skimage.transform.resize(img, (224, 224))[None, :, :, :]   # shape [1, 224, 224, 3]
+    resized_img = skimage.transform.resize(img, (224, 224))   # shape [224, 224, 3]
     return resized_img
 
 def load_train_data():
@@ -42,13 +43,13 @@ def load_train_data():
     #     except OSError:
     #         continue
     #     df.loc[df["Image"] == file, ["img"]] = resized_img
-    for i_path, id in df.iterrows():
-        dir_list = os.listdir(dir)
-        if i_path not in dir_list:
+    dir_list = os.listdir(dir)
+    for _, row in df.iterrows():
+        if row["Image"] not in dir_list:
             imgs.append(None)
             continue
         try:
-            resized_img = load_img(os.path.join(dir, i_path))
+            resized_img = load_img(os.path.join(dir, row["Image"]))
         except OSError:
             imgs.append(None)
         imgs.append(resized_img)
@@ -56,11 +57,12 @@ def load_train_data():
     # labels, org_laldic = one_hot(df["Id"])
     labels, _ = one_hot()
     # return df["Id"], imgs
-    return imgs, labels
+    return np.array(imgs), np.array(labels)
 
 def to_batches(X, y, batch_size=128, seed=1):
     m = X.shape[0]
-    num_batches = imt(m/batch_size)
+    # m = len(X)
+    num_batches = int(m/batch_size)
     batches = []
     np.random.seed(seed)
     permutation = np.random.permutation(m)
@@ -139,7 +141,7 @@ class Vgg16:
             saver.restore(self.sess, restore_from)
         else:   # training graph
             # self.loss = tf.losses.mean_squared_error(labels=self.tfy, predictions=self.out)
-            self.loss = tf.reduce_mean(tf.nn.soft_cross_entropy_with_logits_v2(logits=self.fc7, labels=self.tfy))
+            self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.fc7, labels=self.tfy))
             self.train_op = tf.train.RMSPropOptimizer(0.001).minimize(self.loss)
             self.sess.run(tf.global_variables_initializer())
 
@@ -176,10 +178,13 @@ def train(imgs, labels):
     for i in range(100):
         seed += 1
         # Batch
-        batches = to_batches(imgs, labels, batches=128, seed=seed)
+        batches = to_batches(imgs, labels, batch_size=128, seed=seed)
+        print("Batches type and length: ", type(batches), len(batches))
         train_loss = 0
         for batch in batches:
             mini_X, mini_y = batch
+            print("X type and size: ", type(mini_X), mini_X.shape)
+            print("y type and size: ", type(mini_y), mini_y.shape)
             mini_loss = vgg.train(mini_X, mini_y)
             train_loss += mini_loss
         print(i, "train loss", train_loss)
