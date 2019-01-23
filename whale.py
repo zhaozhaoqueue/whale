@@ -183,7 +183,7 @@ def train(imgs, labels):
     for i in range(30):
         seed += 1
         # Batch
-        batches = to_batches(imgs, labels, batch_size=512, seed=seed)
+        batches = to_batches(imgs, labels, batch_size=128, seed=seed)
         print("Batches type and length: ", type(batches), len(batches))
         train_loss = 0
         for batch in batches:
