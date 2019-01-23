@@ -175,6 +175,9 @@ def train(imgs, labels):
     vgg = Vgg16(vgg16_npy_path="vgg16.npy")
     print("Net built")
 
+    # A previous loss used to stop iteration when the difference of loss is less
+    # than a certain number
+    prev_loss = 0
     # Train the self-built layers (last 2 layers)
     seed = 0
     for i in range(30):
@@ -190,6 +193,11 @@ def train(imgs, labels):
             mini_loss = vgg.train(mini_X, mini_y)
             train_loss += mini_loss
         print(i, "train loss", train_loss)
+        if(abs(train_loss - prev_loss) <= 0.1):
+            print("At", i, "iteration stops")
+            break
+        else:
+            prev_loss = train_loss
 
     vgg.save()
 
