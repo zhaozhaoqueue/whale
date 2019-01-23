@@ -142,7 +142,9 @@ class Vgg16:
         else:   # training graph
             # self.loss = tf.losses.mean_squared_error(labels=self.tfy, predictions=self.out)
             self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.fc7, labels=self.tfy))
-            self.train_op = tf.train.RMSPropOptimizer(0.001).minimize(self.loss)
+            # self.train_op = tf.train.RMSPropOptimizer(0.001).minimize(self.loss)
+            # Swtich to adam optimizer and decrease learning rate to 1e-4
+            self.train_op = tf.train.AdamOptimizer(0.0001).minimize(self.loss)
             self.sess.run(tf.global_variables_initializer())
 
     def max_pool(self, bottom, name):
@@ -175,16 +177,16 @@ def train(imgs, labels):
 
     # Train the self-built layers (last 2 layers)
     seed = 0
-    for i in range(100):
+    for i in range(30):
         seed += 1
         # Batch
-        batches = to_batches(imgs, labels, batch_size=128, seed=seed)
+        batches = to_batches(imgs, labels, batch_size=512, seed=seed)
         print("Batches type and length: ", type(batches), len(batches))
         train_loss = 0
         for batch in batches:
             mini_X, mini_y = batch
-            print("X type and size: ", type(mini_X), mini_X.shape)
-            print("y type and size: ", type(mini_y), mini_y.shape)
+            # print("X type and size: ", type(mini_X), mini_X.shape)
+            # print("y type and size: ", type(mini_y), mini_y.shape)
             mini_loss = vgg.train(mini_X, mini_y)
             train_loss += mini_loss
         print(i, "train loss", train_loss)
