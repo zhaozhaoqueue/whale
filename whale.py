@@ -166,7 +166,7 @@ class Vgg16:
         pred = argmax(pred_vec)
         return pred
 
-    def save(self, path='myVariables'):
+    def save(self, path='./myVariables'):
         saver = tf.train.Saver()
         saver.save(self.sess, path, write_meta_graph=False)
 
@@ -193,7 +193,7 @@ def train(imgs, labels):
             mini_loss = vgg.train(mini_X, mini_y)
             train_loss += mini_loss
         print(i, "train loss", train_loss)
-        if(abs(train_loss - prev_loss) <= 0.1):
+        if(abs(train_loss - prev_loss) <= 0.00001):
             print("At", i, "iteration stops")
             break
         else:
