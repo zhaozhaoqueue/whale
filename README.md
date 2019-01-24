@@ -9,7 +9,7 @@ Run the code on WPI Turing Research Cluster.
 
 ## Step
 ### 1: Run with raw data 
-(Current stage)
+(Current stage) Training accuracy is only 38% and the loss stop decreasing after 9th iteration.
 ### 2: Augment images
 for each type except "new_whale", use Python library imgaug to create more images
 ### 3: To be continued
