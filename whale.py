@@ -135,6 +135,10 @@ class Vgg16:
         self.fc7 = tf.layers.dense(self.fc6, 5005, tf.nn.relu, name="fc7")
         self.out = tf.nn.softmax(self.fc7)
 
+        # Define accuracy
+        self.correct_pred = tf.math.equal(tf.argmax(self.out, 1), tf.argmax(self.tfy, 1))
+        self.accuracy_sum = tf.reduce_sum(tf.cast(self.correct_pred, tf.float32))
+
         self.sess = tf.Session()
         if restore_from:
             saver = tf.train.Saver()
@@ -157,8 +161,8 @@ class Vgg16:
             return lout
 
     def train(self, x, y):
-        loss, _ = self.sess.run([self.loss, self.train_op], {self.tfx: x, self.tfy: y})
-        return loss
+        loss, _, acc_sum = self.sess.run([self.loss, self.train_op, self.accuracy_sum], {self.tfx: x, self.tfy: y})
+        return loss, acc_sum
 
     def predict(self, path):
         x = load_img(path)
@@ -174,7 +178,7 @@ def train(imgs, labels):
     # imgs, labels = load_train_data()
     vgg = Vgg16(vgg16_npy_path="vgg16.npy")
     print("Net built")
-
+    m = imgs.shape[0]
     # A previous loss used to stop iteration when the difference of loss is less
     # than a certain number
     prev_loss = 0
@@ -186,14 +190,17 @@ def train(imgs, labels):
         batches = to_batches(imgs, labels, batch_size=128, seed=seed)
         print("Batches type and length: ", type(batches), len(batches))
         train_loss = 0
+        total_acc = 0
         for batch in batches:
             mini_X, mini_y = batch
             # print("X type and size: ", type(mini_X), mini_X.shape)
             # print("y type and size: ", type(mini_y), mini_y.shape)
-            mini_loss = vgg.train(mini_X, mini_y)
+            mini_loss, mini_acc = vgg.train(mini_X, mini_y)
             train_loss += mini_loss
-        print(i, "train loss", train_loss)
-        if(abs(train_loss - prev_loss) <= 0.00001):
+            total_acc += mini_acc
+        print(i, "train loss ", train_loss)
+        print(i, "train accuracy ", total_acc/m)
+        if(abs(train_loss - prev_loss) <= 0.0000001):
             print("At", i, "iteration stops")
             break
         else:
